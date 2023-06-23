@@ -1,8 +1,8 @@
 #include <ECE3.h>
 
-#define N_SENS 8
-#define R_SENS 1000    //Sensor readings are mapped to this range
-#define MOTORSPEED 60
+#define N_SENS 8       //Number of Sensors
+#define R_SENS 1000    //Normalize sensor data to this
+#define MOTORSPEED 90
 
 const int left_nslp_pin=31; // nslp ==> awake & ready for PWM
 const int left_dir_pin=29;
@@ -14,14 +14,14 @@ const int LED_RF = 41;
 
 uint16_t sensorValues[8]; // right -> left, 0 -> 7
 
-long maxOfSumOfSensors = 12540;
-int sens_max[N_SENS] = {1687, 1637, 1694, 1359.2, 1376, 1468, 1530.8, 1788};
-int sens_min[N_SENS] = {805, 735, 806, 656.8, 712, 643, 675.2, 712};
-int weight_val[N_SENS] = {-8,-4,-2,-1,1,2,4,8};
-const float kp = 0.038;
-const float kd = 0.35;
+long maxOfSumOfSensors = 12540; //Sum of Max Sensor Data
+int sens_max[N_SENS] = {1687, 1637, 1694, 1359.2, 1376, 1468, 1530.8, 1788}; //Max sensor data for each sensor (Detects black)
+int sens_min[N_SENS] = {805, 735, 806, 656.8, 712, 643, 675.2, 712}; //Min sensor data for each sensor (Detects white)
+int weight_val[N_SENS] = {-8,-4,-2,-1,1,2,4,8}; //Weighting scheme for data
+
+const float kp = 0.065;
+const float kd = 0.5;
  
-int sensorRPID = 0;
 float line_pos = 0;
 float prev_line_pos = 0;
 
@@ -41,7 +41,7 @@ void setup() {
   digitalWrite(right_nslp_pin,HIGH);
 
   ECE3_Init();
-  delay(2000);
+  delay(300);
 }
 
 float get_line_pos(int last_dir){
@@ -87,16 +87,16 @@ void loop() {
     sumSensors += sensorValues[i];
 
   endS = millis();
-  if (sumSensors >= (maxOfSumOfSensors - 100))
+  if (sumSensors >= (maxOfSumOfSensors - 100)) //Code for donut and stop on Horizontal black lines
   {
     switch (x) {
       case 0:
         {
         startS = millis();
-        analogWrite(right_pwm_pin, 150);
-        analogWrite(left_pwm_pin, 150);
+        analogWrite(right_pwm_pin, 140);
+        analogWrite(left_pwm_pin, 140);
         digitalWrite(left_dir_pin,HIGH);
-        delay(400);
+        delay(275);
         digitalWrite(left_dir_pin,LOW);
         analogWrite(left_pwm_pin, MOTORSPEED);
         analogWrite(right_pwm_pin, MOTORSPEED);
